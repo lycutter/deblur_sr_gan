@@ -4,6 +4,7 @@ from torch.nn import init
 import functools
 from torch.autograd import Variable
 import numpy as np
+import math
 ###############################################################################
 # Functions
 ###############################################################################
@@ -32,7 +33,7 @@ def get_norm_layer(norm_type='instance'):
 	return norm_layer
 
 
-def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropout=False, gpu_ids=[], use_parallel = True, learn_residual = False):
+def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropout=False, gpu_ids=[], use_parallel = True, learn_residual = False, scale_factor=4):
 	netG = None
 	use_gpu = len(gpu_ids) > 0
 	norm_layer = get_norm_layer(norm_type=norm)
@@ -41,13 +42,13 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
 		assert(torch.cuda.is_available())
 
 	if which_model_netG == 'resnet_9blocks':
-		netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual)
+		netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual, scale_factor=scale_factor)
 	elif which_model_netG == 'resnet_6blocks':
-		netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual)
+		netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual, scale_factor=scale_factor)
 	elif which_model_netG == 'unet_128':
-		netG = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual)
+		netG = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual, scale_factor=scale_factor)
 	elif which_model_netG == 'unet_256':
-		netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual)
+		netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual, scale_factor=scale_factor)
 	else:
 		raise NotImplementedError('Generator model name [%s] is not recognized' % which_model_netG)
 	if len(gpu_ids) > 0:
@@ -95,7 +96,7 @@ def print_network(net):
 # Code and idea originally from Justin Johnson's architecture.
 # https://github.com/jcjohnson/fast-neural-style/
 class ResnetGenerator(nn.Module):
-	def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, gpu_ids=[], use_parallel = True, learn_residual = False, padding_type='reflect'):
+	def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, gpu_ids=[], use_parallel = True, learn_residual = False, padding_type='reflect', scale_factor=4):
 		assert(n_blocks >= 0)
 		super(ResnetGenerator, self).__init__()
 		self.input_nc = input_nc
@@ -104,6 +105,7 @@ class ResnetGenerator(nn.Module):
 		self.gpu_ids = gpu_ids
 		self.use_parallel = use_parallel
 		self.learn_residual = learn_residual
+		upsample_block_num = int(math.log(scale_factor, 2))
 		if type(norm_layer) == functools.partial:
 			use_bias = norm_layer.func == nn.InstanceNorm2d
 		else:
@@ -140,8 +142,13 @@ class ResnetGenerator(nn.Module):
 										 bias=use_bias),
 					  norm_layer(int(ngf * mult / 2)),
 					  nn.ReLU(True)]
-		model += [nn.ReflectionPad2d(3)]
-		model += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
+
+		# model += [nn.ReflectionPad2d(3)]
+		# model += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
+
+		model += [UpsampleBLock(64, 2) for _ in range(upsample_block_num)]
+		model += [nn.Conv2d(64, 3, kernel_size=9, padding=4)]
+
 		model += [nn.Tanh()]
 
 		self.model = nn.Sequential(*model)
@@ -342,3 +349,18 @@ class NLayerDiscriminator(nn.Module):
 			return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
 		else:
 			return self.model(input)
+
+
+
+class UpsampleBLock(nn.Module):
+    def __init__(self, in_channels, up_scale):
+        super(UpsampleBLock, self).__init__()
+        self.conv = nn.Conv2d(in_channels, in_channels * up_scale ** 2, kernel_size=3, padding=1)
+        self.pixel_shuffle = nn.PixelShuffle(up_scale)
+        self.prelu = nn.PReLU()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.pixel_shuffle(x)
+        x = self.prelu(x)
+        return x

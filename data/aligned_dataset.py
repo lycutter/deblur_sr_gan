@@ -17,9 +17,10 @@ class AlignedDataset(BaseDataset):
 
         #assert(opt.resize_or_crop == 'resize_and_crop')
 
-        transform_list = [transforms.ToTensor(),
-                          transforms.Normalize((0.5, 0.5, 0.5),
-                                               (0.5, 0.5, 0.5))]
+        # transform_list = [transforms.ToTensor(),
+        #                   transforms.Normalize((0.5, 0.5, 0.5),
+        #                                        (0.5, 0.5, 0.5))]
+        transform_list = [ToTensor()]
 
         self.transform = transforms.Compose(transform_list)
 
@@ -40,14 +41,22 @@ class AlignedDataset(BaseDataset):
         B = AB[:, h_offset:h_offset + self.opt.fineSize, # sharp img
                w + w_offset:w + w_offset + self.opt.fineSize]
 
-        # lr_tranform = train_lr_transform(self.opt.fineSize, 4)
-        # B = lr_tranform(B)
+        lr_tranform = train_lr_transform(self.opt.fineSize, 4)
+        A = lr_tranform(A)
 
-        if (not self.opt.no_flip) and random.random() < 0.5:
-            idx = [i for i in range(A.size(2) - 1, -1, -1)]
-            idx = torch.LongTensor(idx)
-            A = A.index_select(2, idx)
-            B = B.index_select(2, idx)
+        if (not self.opt.no_flip) and random.random() < 0.5:  # 翻转图片，扩展数据量
+            # idx = [i for i in range(A.size(2) - 1, -1, -1)]
+            # idx = torch.LongTensor(idx)
+            # A = A.index_select(2, idx)
+            # B = B.index_select(2, idx)
+            idx_A = [i for i in range(A.size(2) - 1, -1, -1)]
+            idx_B = [i for i in range(B.size(2) - 1, -1, -1)]
+            idx_A = torch.LongTensor(idx_A)
+            idx_B = torch.LongTensor(idx_B)
+            A = A.index_select(2, idx_A)
+            B = B.index_select(2, idx_B)
+
+
 
         return {'A': A, 'B': B,
                 'A_paths': AB_path, 'B_paths': AB_path}

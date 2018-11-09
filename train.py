@@ -4,8 +4,12 @@ from data.data_loader import CreateDataLoader
 from models.models import create_model
 from util.visualizer import Visualizer
 from util.metrics import PSNR, SSIM
+from logger import Logger
+
+
 
 def train(opt, data_loader, model, visualizer):
+	logger = Logger('./checkpoints/log/')
 	dataset = data_loader.load_data()
 	dataset_size = len(data_loader)
 	print('#training images = %d' % dataset_size)
@@ -25,14 +29,16 @@ def train(opt, data_loader, model, visualizer):
 				psnrMetric = PSNR(results['Restored_Train'],results['Sharp_Train'])
 				print('PSNR on Train = %f' %
 					  (psnrMetric))
-				visualizer.display_current_results(results,epoch)
+				# visualizer.display_current_results(results,epoch)
 
 			if total_steps % opt.print_freq == 0:
 				errors = model.get_current_errors()
+				for tag, value in errors.items():
+					logger.scalar_summary(tag, value, epoch)
 				t = (time.time() - iter_start_time) / opt.batchSize
-				visualizer.print_current_errors(epoch, epoch_iter, errors, t)
-				if opt.display_id > 0:
-					visualizer.plot_current_errors(epoch, float(epoch_iter)/dataset_size, opt, errors)
+				# visualizer.print_current_errors(epoch, epoch_iter, errors, t)
+				# if opt.display_id > 0:
+				# 	visualizer.plot_current_errors(epoch, float(epoch_iter)/dataset_size, opt, errors)
 
 			if total_steps % opt.save_latest_freq == 0:
 				print('saving the latest model (epoch %d, total_steps %d)' %
@@ -55,6 +61,7 @@ def train(opt, data_loader, model, visualizer):
 
 if __name__ == '__main__':
 	opt = TrainOptions().parse()
+	opt.continue_train = False # 选择是否重新训练
 	data_loader = CreateDataLoader(opt)
 	model = create_model(opt)
 	# visualizer = Visualizer(opt)

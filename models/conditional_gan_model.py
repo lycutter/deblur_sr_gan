@@ -31,7 +31,7 @@ class ConditionalGAN(BaseModel):
 		#Temp Fix for nn.parallel as nn.parallel crashes oc calculating gradient penalty
 		use_parallel = not opt.gan_type == 'wgan-gp'
 		self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf,
-									  opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids, use_parallel, opt.learn_residual)
+									  opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids, use_parallel, opt.learn_residual, scale_factor=4)
 		if self.isTrain:
 			use_sigmoid = opt.gan_type == 'gan'
 			self.netD = networks.define_D(opt.output_nc, opt.ndf,

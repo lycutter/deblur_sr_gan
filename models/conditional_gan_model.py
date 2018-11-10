@@ -118,10 +118,13 @@ class ConditionalGAN(BaseModel):
 							])
 
 	def get_current_visuals(self):
+		fake_B_back = self.fake_B.clone()
+		real_B_back = self.real_B.clone()
 		real_A = util.tensor2im(self.real_A.data)
 		fake_B = util.tensor2im(self.fake_B.data)
 		real_B = util.tensor2im(self.real_B.data)
-		return OrderedDict([('Blurred_Train', real_A), ('Restored_Train', fake_B), ('Sharp_Train', real_B)])
+		return OrderedDict([('Blurred_Train', real_A), ('Restored_Train', fake_B), ('Sharp_Train', real_B),
+							('fake_B', fake_B_back), ('real_B', real_B_back)])
 
 	def save(self, label):
 		self.save_network(self.netG, 'G', label, self.gpu_ids)

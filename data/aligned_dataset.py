@@ -27,6 +27,7 @@ class AlignedDataset(BaseDataset):
     def __getitem__(self, index):
         AB_path = self.AB_paths[index]
         AB = Image.open(AB_path).convert('RGB')
+        # AB = Image.open(AB_path)
         AB = AB.resize((self.opt.loadSizeX * 2, self.opt.loadSizeY), Image.BICUBIC)
         AB = self.transform(AB)
 

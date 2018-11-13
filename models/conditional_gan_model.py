@@ -49,17 +49,17 @@ class ConditionalGAN(BaseModel):
 
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(),
-                                                lr=opt.lr, betas=(opt.beta1, 0.999))
+                                                lr=opt.lr_g, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(),
-                                                lr=opt.lr, betas=(opt.beta1, 0.999))
+                                                lr=opt.lr_d, betas=(opt.beta1, 0.999))
 
             self.criticUpdates = 5 if opt.gan_type == 'wgan-gp' else 1
 
             # define loss functions
             self.discLoss, self.contentLoss = init_loss(opt, self.Tensor)
 
-            # add image loss as SRGAN
-            self.mse_loss = nn.MSELoss()
+            # image loss
+            self.image_loss = nn.L1Loss()
 
         print('---------- Networks initialized -------------')
         networks.print_network(self.netG)
@@ -98,10 +98,12 @@ class ConditionalGAN(BaseModel):
         self.loss_G_GAN = self.discLoss.get_g_loss(self.netD, self.real_A, self.fake_B)
         # Second, G(A) = B
         # self.loss_G_Content = self.contentLoss.get_loss(self.fake_B, self.real_B) * self.opt.lambda_A
-        self.loss_G_Content = self.contentLoss.get_loss(self.fake_B, self.real_B) * 0.006 \
-                              + self.mse_loss(self.fake_B, self.real_B)
+        # self.loss_G = self.loss_G_GAN + self.loss_G_Content
 
-        self.loss_G = 0.001 * self.loss_G_GAN + self.loss_G_Content
+        self.loss_G_Content = self.contentLoss.get_loss(self.fake_B, self.real_B) \
+                              + self.image_loss(self.fake_B, self.real_B) * 0.01
+
+        self.loss_G = 0.1 * self.loss_G_GAN + self.loss_G_Content
 
         self.loss_G.backward()
 

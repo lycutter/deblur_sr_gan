@@ -57,7 +57,6 @@ class GANLoss(nn.Module):
 			self.loss = nn.L1Loss()
 		else:
 			self.loss = nn.BCELoss()
-
 	def get_target_tensor(self, input, target_is_real):
 		target_tensor = None
 		if target_is_real:
@@ -173,7 +172,8 @@ def init_loss(opt, tensor):
 	
 	if opt.model == 'content_gan':
 		content_loss = PerceptualLoss()
-		content_loss.initialize(nn.MSELoss())
+		# content_loss.initialize(nn.MSELoss())
+		content_loss.initialize(nn.L1Loss())
 	elif opt.model == 'pix2pix':
 		content_loss = ContentLoss()
 		content_loss.initialize(nn.L1Loss())

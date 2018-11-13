@@ -46,9 +46,9 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
     elif which_model_netG == 'resnet_6blocks':
         netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual, scale_factor=scale_factor)
     elif which_model_netG == 'unet_128':
-        netG = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual, scale_factor=scale_factor)
+        netG = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual)
     elif which_model_netG == 'unet_256':
-        netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual, scale_factor=scale_factor)
+        netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids, use_parallel=use_parallel, learn_residual = learn_residual)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % which_model_netG)
     if len(gpu_ids) > 0:
@@ -95,72 +95,6 @@ def print_network(net):
 # downsampling/upsampling operations.
 # Code and idea originally from Justin Johnson's architecture.
 # https://github.com/jcjohnson/fast-neural-style/
-# class ResnetGenerator(nn.Module):
-# 	def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, gpu_ids=[], use_parallel = True, learn_residual = False, padding_type='reflect', scale_factor=4):
-# 		assert(n_blocks >= 0)
-# 		super(ResnetGenerator, self).__init__()
-# 		self.input_nc = input_nc
-# 		self.output_nc = output_nc
-# 		self.ngf = ngf
-# 		self.gpu_ids = gpu_ids
-# 		self.use_parallel = use_parallel
-# 		self.learn_residual = learn_residual
-# 		upsample_block_num = int(math.log(scale_factor, 2))
-# 		if type(norm_layer) == functools.partial:
-# 			use_bias = norm_layer.func == nn.InstanceNorm2d
-# 		else:
-# 			use_bias = norm_layer == nn.InstanceNorm2d
-#
-#
-# 		model = [nn.ReflectionPad2d(3),
-# 				 nn.Conv2d(input_nc, ngf, kernel_size=7, padding=0,
-# 						   bias=use_bias),
-#
-# 				 #nn.InstanceNorm2d(64, eps=1e-05, momentum=0.1, affine=False, track_running_stats=True),
-# 				 norm_layer(ngf),
-# 				 nn.ReLU(True)]
-#
-# 		n_downsampling = 2
-# 		for i in range(n_downsampling):
-# 			mult = 2**i
-# 			model += [nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3,
-# 								stride=2, padding=1, bias=use_bias),
-# 					  norm_layer(ngf * mult * 2),
-# 					  nn.ReLU(True)]
-#
-# 		mult = 2**n_downsampling
-# 		for i in range(n_blocks):
-# 			model += [ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias)]
-#
-# 		for i in range(n_downsampling):
-# 			mult = 2**(n_downsampling - i)
-# 			model += [nn.ConvTranspose2d(ngf * mult, int(ngf * mult / 2),
-# 										 kernel_size=3, stride=2,
-# 										 padding=1, output_padding=1,
-# 										 bias=use_bias),
-# 					  norm_layer(int(ngf * mult / 2)),
-# 					  nn.ReLU(True)]
-#
-# 		# model += [nn.ReflectionPad2d(3)]
-# 		# model += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
-#
-# 		model += [UpsampleBLock(64, 2) for _ in range(upsample_block_num)]
-# 		model += [nn.Conv2d(64, 3, kernel_size=9, padding=4)]
-#
-# 		model += [nn.Tanh()]
-#
-# 		self.model = nn.Sequential(*model)
-#
-# 	def forward(self, input):
-# 		if self.gpu_ids and isinstance(input.data, torch.cuda.FloatTensor) and self.use_parallel:
-# 			output = nn.parallel.data_parallel(self.model, input, self.gpu_ids)
-# 		else:
-# 			output = self.model(input)
-# 		if self.learn_residual:
-# 			output = input + output
-# 			output = torch.clamp(output,min = -1,max = 1)
-# 		return output
-
 class ResnetGenerator(nn.Module):
     def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, gpu_ids=[], use_parallel = True, learn_residual = False, padding_type='reflect', scale_factor=4):
         assert(n_blocks >= 0)
@@ -183,7 +117,7 @@ class ResnetGenerator(nn.Module):
                            bias=use_bias),
 
                  #nn.InstanceNorm2d(64, eps=1e-05, momentum=0.1, affine=False, track_running_stats=True),
-                 norm_layer(ngf),
+                 # norm_layer(ngf),
                  nn.ReLU(True)]
         self.block1 = nn.Sequential(*model)
 
@@ -193,7 +127,7 @@ class ResnetGenerator(nn.Module):
             mult = 2**i
             model += [nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3,
                                 stride=2, padding=1, bias=use_bias),
-                      norm_layer(ngf * mult * 2),
+                      # norm_layer(ngf * mult * 2),
                       nn.ReLU(True)]
 
         mult = 2**n_downsampling
@@ -206,7 +140,7 @@ class ResnetGenerator(nn.Module):
                                          kernel_size=3, stride=2,
                                          padding=1, output_padding=1,
                                          bias=use_bias),
-                      norm_layer(int(ngf * mult / 2)),
+                      # norm_layer(int(ngf * mult / 2)),
                       nn.ReLU(True)]
 
         self.block2 = nn.Sequential(*model)
@@ -236,18 +170,6 @@ class ResnetGenerator(nn.Module):
             output = input + output
             output = torch.clamp(output,min = -1,max = 1)
         return output
-
-
-
-    # def forward(self, input):
-    #     if self.gpu_ids and isinstance(input.data, torch.cuda.FloatTensor) and self.use_parallel:
-    #         output = nn.parallel.data_parallel(self.model, input, self.gpu_ids)
-    #     else:
-    #         output = self.model(input)
-    #     if self.learn_residual:
-    #         output = input + output
-    #         output = torch.clamp(output, min=-1, max=1)
-    #     return output
 
 
 # Define a resnet block
@@ -379,9 +301,11 @@ class UnetSkipConnectionBlock(nn.Module):
 
     def forward(self, x):
         if self.outermost:
-            return self.model(x)
+            output = self.model(x)
+            return output
         else:
-            return torch.cat([self.model(x), x], 1)
+            output = torch.cat([self.model(x), x], 1)
+            return output
 
 
 # Defines the PatchGAN discriminator with the specified arguments.

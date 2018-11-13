@@ -65,7 +65,7 @@ if __name__ == '__main__':
 	opt = TrainOptions().parse()
 	opt.continue_train = False # 选择是否继续上次的训练
 	if opt.continue_train:
-		opt.which_epoch = 20
+		opt.which_epoch = 25
 		opt.epoch_count = opt.which_epoch + 1
 	data_loader = CreateDataLoader(opt)
 	model = create_model(opt)

@@ -6,7 +6,6 @@ from util.visualizer import Visualizer
 from util.metrics import PSNR, SSIM
 from logger import Logger
 import pytorch_ssim
-import torch
 
 def train(opt, data_loader, model, visualizer):
 	logger = Logger('./checkpoints/log/')
@@ -63,7 +62,7 @@ def train(opt, data_loader, model, visualizer):
 
 if __name__ == '__main__':
 	opt = TrainOptions().parse()
-	opt.continue_train = False # 选择是否继续上次的训练
+	opt.continue_train = True # 选择是否继续上次的训练
 	if opt.continue_train:
 		opt.which_epoch = 25
 		opt.epoch_count = opt.which_epoch + 1

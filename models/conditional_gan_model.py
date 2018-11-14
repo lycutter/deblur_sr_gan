@@ -9,6 +9,7 @@ from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
 from .losses import init_loss
+from PIL import Image
 
 try:
     xrange          # Python2
@@ -49,9 +50,9 @@ class ConditionalGAN(BaseModel):
 
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(),
-                                                lr=opt.lr_g, betas=(opt.beta1, 0.999))
+                                                lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(),
-                                                lr=opt.lr_d, betas=(opt.beta1, 0.999))
+                                                lr=opt.lr, betas=(opt.beta1, 0.999))
 
             self.criticUpdates = 5 if opt.gan_type == 'wgan-gp' else 1
 

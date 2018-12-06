@@ -102,15 +102,16 @@ class BlurImage(object):
             elif save:
                 if self.path_to_save is None:
                     raise Exception('Please create Trajectory instance with path_to_save')
-                cv2.imwrite(os.path.join(self.path_to_save, self.image_path.split('/')[-1]), self.result[0] * 255)
+                cv2.imwrite(os.path.join(self.path_to_save, self.image_path.split('\\')[-1]), self.result[0] * 255)
             elif show:
                 plt.show()
 
 
 if __name__ == '__main__':
-    folder = '/Users/mykolam/PycharmProjects/University/DeblurGAN2/results_sharp'
-    folder_to_save = '/Users/mykolam/PycharmProjects/University/DeblurGAN2/blured'
-    params = [0.01, 0.009, 0.008, 0.007, 0.005, 0.003]
+    folder = 'D:/pythonWorkplace/Dataset/CelebA_train/crop_X128_train'
+    folder_to_save = 'D:/pythonWorkplace/Dataset/CelebA_train/blur'
+    # params = [0.01, 0.009, 0.008, 0.007, 0.005, 0.003]
+    params = [0.01]
     for path in os.listdir(folder):
         print(path)
         trajectory = Trajectory(canvas=64, max_len=60, expl=np.random.choice(params)).fit()

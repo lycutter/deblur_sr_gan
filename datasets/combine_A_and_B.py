@@ -8,10 +8,24 @@ parser = argparse.ArgumentParser('create image pairs')
 # parser.add_argument('--fold_A', dest='fold_A', help='input directory for image A', type=str, default='../datasets/50kshoes_edges')
 # parser.add_argument('--fold_B', dest='fold_B', help='input directory for image B', type=str, default='../datasets/50kshoes_jpg')
 # parser.add_argument('--fold_AB', dest='fold_AB', help='output directory', type=str, default='../datasets/test_AB')
-parser.add_argument('--fold_img', dest='fold_img', help='input directory for image', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp')
-parser.add_argument('--fold_A', dest='fold_A', help='input directory for image A', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp/blurred')
-parser.add_argument('--fold_B', dest='fold_B', help='input directory for image B', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp/sharp')
-parser.add_argument('--fold_AB', dest='fold_AB', help='output directory', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp/combo/')
+#
+# parser.add_argument('--fold_img', dest='fold_img', help='input directory for image', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp')
+# parser.add_argument('--fold_A', dest='fold_A', help='input directory for image A', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp/blurred')
+# parser.add_argument('--fold_B', dest='fold_B', help='input directory for image B', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp/sharp')
+# parser.add_argument('--fold_AB', dest='fold_AB', help='output directory', type=str, default='D:/pythonWorkplace/DeblurGAN-master/images/blurred_sharp/combo/')
+
+
+# parser.add_argument('--fold_img', dest='fold_img', help='input directory for image', type=str, default='D:/pythonWorkplace/Dataset/GFNDataSet/GOPR0884_11_00')
+# parser.add_argument('--fold_A', dest='fold_A', help='input directory for image A', type=str, default='D:/pythonWorkplace/Dataset/GFNDataSet/GOPR0884_11_00/blur')
+# parser.add_argument('--fold_B', dest='fold_B', help='input directory for image B', type=str, default='D:/pythonWorkplace/Dataset/GFNDataSet/GOPR0884_11_00/sharp')
+# parser.add_argument('--fold_AB', dest='fold_AB', help='output directory', type=str, default='D:/pythonWorkplace/Dataset/GFNDataSet/GOPR0884_11_00/combo')
+
+
+parser.add_argument('--fold_img', dest='fold_img', help='input directory for image', type=str, default='D:/pythonWorkplace/Dataset/CelebA_Pair')
+parser.add_argument('--fold_A', dest='fold_A', help='input directory for image A', type=str, default='D:/pythonWorkplace/Dataset/CelebA_Pair/blur')
+parser.add_argument('--fold_B', dest='fold_B', help='input directory for image B', type=str, default='D:/pythonWorkplace/Dataset/CelebA_Pair/sharp')
+parser.add_argument('--fold_AB', dest='fold_AB', help='output directory', type=str, default='D:/pythonWorkplace/Dataset/CelebA_Pair/combo')
+
 parser.add_argument('--num_imgs', dest='num_imgs', help='number  of images',type=int, default=1000000)
 parser.add_argument('--use_AB', dest='use_AB', help='if true: (0001_A, 0001_B) to (0001_AB)',action='store_true')
 args = parser.parse_args()

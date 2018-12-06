@@ -44,6 +44,7 @@ class AlignedDataset(BaseDataset):
 
         lr_tranform = train_lr_transform(self.opt.fineSize, 4)
         A = lr_tranform(A)
+        C = lr_tranform(B)
 
         if (not self.opt.no_flip) and random.random() < 0.5:  # 翻转图片，扩展数据量
             # idx = [i for i in range(A.size(2) - 1, -1, -1)]
@@ -52,15 +53,17 @@ class AlignedDataset(BaseDataset):
             # B = B.index_select(2, idx)
             idx_A = [i for i in range(A.size(2) - 1, -1, -1)]
             idx_B = [i for i in range(B.size(2) - 1, -1, -1)]
+            idx_C = [i for i in range(C.size(2) - 1, -1, -1)]
             idx_A = torch.LongTensor(idx_A)
             idx_B = torch.LongTensor(idx_B)
+            idx_C = torch.LongTensor(idx_C)
             A = A.index_select(2, idx_A)
             B = B.index_select(2, idx_B)
+            C = C.index_select(2, idx_C)
 
 
-
-        return {'A': A, 'B': B,
-                'A_paths': AB_path, 'B_paths': AB_path}
+        return {'A': A, 'B': B, 'C': C, # A是LR_Blur， B是HR_Sharp, C是LR_Sharp
+                'A_paths': AB_path, 'B_paths': AB_path, 'C_paths': AB_path}
 
     def __len__(self):
         return len(self.AB_paths)
